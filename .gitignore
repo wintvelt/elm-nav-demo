@@ -10,5 +10,10 @@ repl-temp-*
 # Dependency directories
 node_modules
 
+# Config and scripts for webpack (?)
+config/
+scripts/
+package.json
+
 # Desktop Services Store on macOS
 .DS_Store

@@ -3,13 +3,14 @@ module App exposing (..)
 import Html exposing (Html, text, div, p, img)
 import Html.Attributes exposing (src)
 import Navigation exposing (Location)
-
+import Route as Route exposing (Route)
 
 type alias Model =
     { path : String
     , hash : String
     , search : String
     , logo : String
+    , currentRoute : Route
     }
 
 
@@ -19,6 +20,7 @@ init path location =
         , hash = location.hash
         , search = location.search
         , logo = path 
+        , currentRoute = Route.Movies
         }
     , Cmd.none 
     )
