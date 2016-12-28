@@ -20,7 +20,7 @@ init path location =
         , hash = location.hash
         , search = location.search
         , logo = path 
-        , currentRoute = Route.Movies
+        , currentRoute = Route.parse location
         }
     , Cmd.none 
     )
@@ -38,6 +38,7 @@ update msg model =
                 | path = newLocation.pathname 
                 , hash = newLocation.hash
                 , search = newLocation.search
+                , currentRoute = Route.parse newLocation
                 }
             , Cmd.none 
             )
@@ -47,6 +48,7 @@ view : Model -> Html Msg
 view model =
     div []
         [ img [ src model.logo ] []
+        , p [] [ text <| "currentRoute = " ++ toString model.currentRoute ]
         , p [] [ text <| "path = " ++ model.path ]
         , p [] [ text <| "hash = " ++ model.hash ]
         , p [] [ text <| "search = " ++ model.search ]
