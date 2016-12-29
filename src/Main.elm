@@ -1,11 +1,11 @@
 module Main exposing (..)
 
 import App exposing (..)
-import Navigation exposing (programWithFlags)
+import Navigation exposing (program)
 
 
-main : Program String Model Msg
+main : Program Never Model Msg
 main =
-    programWithFlags 
+    program 
     NewUrl
     { view = view, init = init, update = update, subscriptions = subscriptions }

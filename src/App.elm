@@ -14,12 +14,12 @@ type alias Model =
     }
 
 
-init : String -> Location -> ( Model, Cmd Msg )
-init path location =
+init : Location -> ( Model, Cmd Msg )
+init location =
     (   { path = location.pathname
         , hash = location.hash
         , search = location.search
-        , logo = path 
+        , logo = "path" 
         , currentRoute = Route.parse location
         }
     , Cmd.none 

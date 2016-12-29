@@ -6,7 +6,7 @@ import UrlParser as P exposing ((</>))
 type Route =
   Movies
   | MovieDetail Int
-  | InValidRoute
+  | InvalidRoute
 
 
 route : P.Parser (Route -> a) a
@@ -20,4 +20,4 @@ route =
 parse : Location -> Route
 parse location =
     P.parseHash route location
-    |> Maybe.withDefault InValidRoute
+    |> Maybe.withDefault InvalidRoute
