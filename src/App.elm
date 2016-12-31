@@ -5,12 +5,24 @@ import Html.Attributes exposing (type_, placeholder, class, href)
 import Dict exposing (Dict)
 import Navigation exposing (Location)
 import Route as Route exposing (Route(..), UrlRoute(..))
+import Task
 
 type alias Model =
     { movies : Dict Int String
     , currentRoute : Route
     , message : String
+    , serverRequest : Maybe Int
     }
+
+type alias Movie = { title : String, year : Int }
+
+mockServerMovies = 
+    Dict.fromList 
+    [ (0, { title = "Abduction", year = 2011})
+    , (1, { title = "Blues Brothers", year = 1980})
+    , (2, { title = "Cat People", year = 1982 })
+    , (4, { title = "Eagle Eye", year = 2008 })
+    ]
 
 
 init : Location -> ( Model, Cmd Msg )
@@ -25,13 +37,15 @@ init location =
             ]
     , currentRoute = Movies
     , message = ""
+    , serverRequest = Nothing
     }
     |> urlUpdate location
 
 
 type Msg
     = UrlChanged Location
-    | Nav String
+    | LoadError String
+    | GotMovieDetail Movie
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -40,10 +54,32 @@ update msg model =
         UrlChanged newLocation ->
             urlUpdate newLocation model
 
-        Nav newUrl ->
-            ( model 
-            , Navigation.newUrl newUrl
+        LoadError message ->
+            (   { model 
+                | serverRequest = Nothing
+                , message = message 
+                }
+            , Cmd.none
             )
+
+        GotMovieDetail movie ->
+            case model.serverRequest of
+                Just id ->
+                    (   { model 
+                        | currentRoute = MovieDetail id movie
+                        , serverRequest = Nothing
+                        , message = "" 
+                        }
+                    ,   Route.newRoute <| MovieDetail id movie
+                    )
+
+                Nothing ->
+                    (   { model 
+                        | message = "got strange stuff" 
+                        , serverRequest = Nothing
+                        }
+                    ,   Cmd.none
+                    )
 
 
 urlUpdate : Location -> Model -> ( Model, Cmd Msg )
@@ -51,7 +87,7 @@ urlUpdate newLocation model =
     case Route.parse newLocation of
         Nothing ->
             ( { model | message = "invalid URL: " ++ newLocation.hash }
-            , Route.modifyRoute Movies 
+            , Route.modifyRoute model.currentRoute 
             )
 
         Just validRequest ->
@@ -66,19 +102,34 @@ urlUpdate newLocation model =
                         )
 
                     MovieDetailUrl id ->
-                        case Dict.get id model.movies of
-                            Just movie ->  
-                                (   { model
-                                    | currentRoute = MovieDetail id movie
-                                    }
-                                , Cmd.none
-                                )
-              
-                            Nothing ->
-                                ( { model | message = "unknown movie: " ++ toString id }
-                                , Route.modifyRoute model.currentRoute
-                                )
+                        (   { model 
+                            | serverRequest = Just id 
+                            , message = "Loading data for movie : " ++ toString id
+                            } 
+                        , Cmd.batch [ fetchMovieDetail id, Route.modifyRoute model.currentRoute ]
+                        )
 
+fetchMovieDetail : Int -> Cmd Msg
+fetchMovieDetail id =
+    let
+        fetchTask =
+            case Dict.get id mockServerMovies of
+                Nothing ->
+                    Task.fail <| "No details for movie : " ++ toString id
+
+                Just movie ->
+                    Task.succeed movie
+    in
+        Task.attempt processFetch fetchTask
+
+processFetch : Result String Movie -> Msg
+processFetch result =
+    case result of
+        Err error ->
+            LoadError error
+
+        Ok movie ->
+            GotMovieDetail movie
 
 view : Model -> Html Msg
 view model =
@@ -105,7 +156,7 @@ viewMovie (id, movie) =
       [ text "show details" ]
     ]
 
-
+moviesDetailView : Model -> Int -> Movie -> Html msg
 moviesDetailView model movieId movie =
   div [ class "page" ]
     [ div [ class "header" ]
@@ -114,7 +165,8 @@ moviesDetailView model movieId movie =
       ]
     , p [] [ text model.message ] 
     , div [ class "movie-details" ]
-      [ p [] [ text movie ]
+      [ p [] [ text movie.title ]
+      , p [] [ text <| "year : " ++ toString movie.year ]
       ]
     ]
 

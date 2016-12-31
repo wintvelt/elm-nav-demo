@@ -9,8 +9,9 @@ type UrlRoute =
 
 type Route =
     Movies
-    | MovieDetail Int String
+    | MovieDetail Int Movie
 
+type alias Movie = { title : String, year : Int }
 
 routeParser : P.Parser (UrlRoute -> a) a
 routeParser =
@@ -57,3 +58,7 @@ isEqual urlRoute route =
 modifyRoute : Route -> Cmd msg
 modifyRoute =
     Navigation.modifyUrl << toUrl << toUrlRoute
+
+newRoute : Route -> Cmd msg
+newRoute =
+    Navigation.newUrl << toUrl << toUrlRoute
