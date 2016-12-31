@@ -60,12 +60,12 @@ urlUpdate newLocation model =
 
             else
                 case validRequest of
-                    UrlMovies ->
+                    MoviesUrl ->
                         ( { model | currentRoute = Movies }
                         , Cmd.none
                         )
 
-                    UrlMovieDetail id ->
+                    MovieDetailUrl id ->
                         case Dict.get id model.movies of
                             Just movie ->  
                                 (   { model
@@ -101,7 +101,7 @@ moviesView model =
 viewMovie (id, movie) =
   li [ class "movie-list-item" ]  
     [ text movie
-    , a [ href <| Route.toUrl <| UrlMovieDetail id ]
+    , a [ href <| Route.toUrl <| MovieDetailUrl id ]
       [ text "show details" ]
     ]
 
@@ -109,7 +109,7 @@ viewMovie (id, movie) =
 moviesDetailView model movieId movie =
   div [ class "page" ]
     [ div [ class "header" ]
-      [ a [ href <| Route.toUrl UrlMovies ] [ text "Back to movies" ]
+      [ a [ href <| Route.toUrl MoviesUrl ] [ text "Back to movies" ]
       , text "Movie details"
       ]
     , p [] [ text model.message ] 

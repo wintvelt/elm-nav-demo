@@ -4,8 +4,8 @@ import Navigation exposing (Location)
 import UrlParser as P exposing ((</>))
 
 type UrlRoute =
-  UrlMovies
-  | UrlMovieDetail Int
+  MoviesUrl
+  | MovieDetailUrl Int
 
 type Route =
     Movies
@@ -15,8 +15,8 @@ type Route =
 routeParser : P.Parser (UrlRoute -> a) a
 routeParser =
     P.oneOf
-        [ P.map UrlMovies (P.top)
-        , P.map UrlMovieDetail (P.s "movies" </> P.int) 
+        [ P.map MoviesUrl (P.top)
+        , P.map MovieDetailUrl (P.s "movies" </> P.int) 
         ]
 
 
@@ -30,10 +30,10 @@ toUrl urlRoute =
     let
         hashRoute =
             case urlRoute of
-                UrlMovies ->
+                MoviesUrl ->
                     "/"
 
-                UrlMovieDetail id ->
+                MovieDetailUrl id ->
                     "/movies/" ++ toString id
 
     in
@@ -43,10 +43,10 @@ toUrlRoute : Route -> UrlRoute
 toUrlRoute route =
     case route of
         Movies ->
-            UrlMovies
+            MoviesUrl
 
         MovieDetail id _ ->
-            UrlMovieDetail id
+            MovieDetailUrl id
 
 
 isEqual : UrlRoute -> Route -> Bool
