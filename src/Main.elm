@@ -7,5 +7,5 @@ import Navigation exposing (program)
 main : Program Never Model Msg
 main =
     program 
-    NewUrl
+    UrlChanged
     { view = view, init = init, update = update, subscriptions = subscriptions }

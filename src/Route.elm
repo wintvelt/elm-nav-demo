@@ -3,21 +3,57 @@ module Route exposing (..)
 import Navigation exposing (Location)
 import UrlParser as P exposing ((</>))
 
+type UrlRoute =
+  UrlMovies
+  | UrlMovieDetail Int
+
 type Route =
-  Movies
-  | MovieDetail Int
-  | InvalidRoute
+    Movies
+    | MovieDetail Int String
 
 
-route : P.Parser (Route -> a) a
-route =
+routeParser : P.Parser (UrlRoute -> a) a
+routeParser =
     P.oneOf
-        [ P.map Movies (P.top)
-        , P.map Movies (P.s "movies")
-        , P.map MovieDetail (P.s "movies" </> P.int) 
+        [ P.map UrlMovies (P.top)
+        , P.map UrlMovieDetail (P.s "movies" </> P.int) 
         ]
 
-parse : Location -> Route
+
+parse : Location -> Maybe UrlRoute
 parse location =
-    P.parseHash route location
-    |> Maybe.withDefault InvalidRoute
+    P.parseHash routeParser location
+
+
+toUrl : UrlRoute -> String
+toUrl urlRoute =
+    let
+        hashRoute =
+            case urlRoute of
+                UrlMovies ->
+                    "/"
+
+                UrlMovieDetail id ->
+                    "/movies/" ++ toString id
+
+    in
+        "#" ++ hashRoute
+
+isEqual : UrlRoute -> Route -> Bool
+isEqual urlRoute route =
+    urlRoute == toUrlRoute route
+
+toUrlRoute : Route -> UrlRoute
+toUrlRoute route =
+    case route of
+        Movies ->
+            UrlMovies
+
+        MovieDetail id _ ->
+            UrlMovieDetail id
+
+
+
+modifyRoute : Route -> Cmd msg
+modifyRoute =
+    Navigation.modifyUrl << toUrl << toUrlRoute
