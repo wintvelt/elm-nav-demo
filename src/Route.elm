@@ -39,10 +39,6 @@ toUrl urlRoute =
     in
         "#" ++ hashRoute
 
-isEqual : UrlRoute -> Route -> Bool
-isEqual urlRoute route =
-    urlRoute == toUrlRoute route
-
 toUrlRoute : Route -> UrlRoute
 toUrlRoute route =
     case route of
@@ -52,6 +48,10 @@ toUrlRoute route =
         MovieDetail id _ ->
             UrlMovieDetail id
 
+
+isEqual : UrlRoute -> Route -> Bool
+isEqual urlRoute route =
+    urlRoute == toUrlRoute route
 
 
 modifyRoute : Route -> Cmd msg
