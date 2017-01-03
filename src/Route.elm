@@ -3,75 +3,75 @@ module Route exposing (..)
 import Navigation exposing (Location)
 import UrlParser as P exposing ((</>))
 
-{- Route to use in model
+{- Page to use in model
 This variant stores data too!
 -}
-type Route =
-    Movies
-    | MovieDetail Int Movie
+type Page =
+    MoviesPage
+    | MovieDetailPage Int Movie
 
 {- typesafe variant of valid urls -}
-type UrlRoute =
-  MoviesUrl
-  | MovieDetailUrl Int
+type Route =
+  Movies
+  | MovieDetail Int
 
 
--- Helpers to turn Location into a Maybe UrlRoute
-routeParser : P.Parser (UrlRoute -> a) a
+-- Helpers to turn Location into a Maybe Route
+routeParser : P.Parser (Route -> a) a
 routeParser =
     P.oneOf
-        [ P.map MoviesUrl (P.top)
-        , P.map MovieDetailUrl (P.s "movies" </> P.int) 
+        [ P.map Movies (P.top)
+        , P.map MovieDetail (P.s "movies" </> P.int) 
         ]
 
 
-parse : Location -> Maybe UrlRoute
+parse : Location -> Maybe Route
 parse location =
     P.parseHash routeParser location
 
 
--- Helper to turn UrlRoute into a url for the browser
-toUrl : UrlRoute -> String
-toUrl urlRoute =
+-- Helper to turn Route into a url for the browser
+toUrl : Route -> String
+toUrl route =
     let
-        hashRoute =
-            case urlRoute of
-                MoviesUrl ->
+        hashPage =
+            case route of
+                Movies ->
                     "/"
 
-                MovieDetailUrl id ->
+                MovieDetail id ->
                     "/movies/" ++ toString id
 
     in
-        "#" ++ hashRoute
+        "#" ++ hashPage
 
--- helper to turn valid route (with Data) into a UrlRoute
-toUrlRoute : Route -> UrlRoute
-toUrlRoute route =
-    case route of
-        Movies ->
-            MoviesUrl
+-- helper to turn valid Page (with Data) into a Route
+toRoute : Page -> Route
+toRoute page =
+    case page of
+        MoviesPage ->
+            Movies
 
-        MovieDetail id _ ->
-            MovieDetailUrl id
+        MovieDetailPage id _ ->
+            MovieDetail id
 
--- helper to match UrlRoute to Route
-isEqual : UrlRoute -> Route -> Bool
-isEqual urlRoute route =
-    urlRoute == toUrlRoute route
+-- helper to match Route to Page
+isEqual : Route -> Page -> Bool
+isEqual urlPage page =
+    urlPage == toRoute page
 
 
 {- helper to change browser bar to new url without adding to history
 for correcting invalid routes
 or for changing a url back to url for current page while data loads
 -}
-modifyRoute : Route -> Cmd msg
-modifyRoute =
-    Navigation.modifyUrl << toUrl << toUrlRoute
+modifyUrl : Page -> Cmd msg
+modifyUrl =
+    Navigation.modifyUrl << toUrl << toRoute
 
 -- helper to change browser bar to new url, adding to browser history
-newRoute : Route -> Cmd msg
-newRoute =
-    Navigation.newUrl << toUrl << toUrlRoute
+newUrl : Page -> Cmd msg
+newUrl =
+    Navigation.newUrl << toUrl << toRoute
 
 type alias Movie = { title : String, year : Int }

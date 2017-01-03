@@ -4,12 +4,13 @@ import Html exposing (Html, Attribute, text, div, p, input, ul, li, a)
 import Html.Attributes exposing (type_, placeholder, class, href)
 import Dict exposing (Dict)
 import Navigation exposing (Location)
-import Route as Route exposing (Route(..), UrlRoute(..))
+import Route as Route exposing (Route(..), Page(..))
 import Task
+import Process
 
 type alias Model =
     { movies : Dict Int String
-    , currentRoute : Route
+    , currentPage : Page
     , message : String
     , serverRequest : Maybe Int
     }
@@ -35,7 +36,7 @@ init location =
             , (3, "Da Vinci Code")
             , (4, "Eagle Eye")
             ]
-    , currentRoute = Movies
+    , currentPage = MoviesPage
     , message = ""
     , serverRequest = Nothing
     }
@@ -66,11 +67,11 @@ update msg model =
             case model.serverRequest of
                 Just id ->
                     (   { model 
-                        | currentRoute = MovieDetail id movie
+                        | currentPage = MovieDetailPage id movie
                         , serverRequest = Nothing
                         , message = "" 
                         }
-                    ,   Route.newRoute <| MovieDetail id movie
+                    ,   Route.newUrl <| MovieDetailPage id movie
                     )
 
                 Nothing ->
@@ -87,26 +88,26 @@ urlUpdate newLocation model =
     case Route.parse newLocation of
         Nothing ->
             ( { model | message = "invalid URL: " ++ newLocation.hash }
-            , Route.modifyRoute model.currentRoute 
+            , Route.modifyUrl model.currentPage 
             )
 
-        Just validRequest ->
-            if Route.isEqual validRequest model.currentRoute then
+        Just validRoute ->
+            if Route.isEqual validRoute model.currentPage then
                 ( model , Cmd.none )
 
             else
-                case validRequest of
-                    MoviesUrl ->
-                        ( { model | currentRoute = Movies }
+                case validRoute of
+                    Movies ->
+                        ( { model | currentPage = MoviesPage }
                         , Cmd.none
                         )
 
-                    MovieDetailUrl id ->
+                    MovieDetail id ->
                         (   { model 
                             | serverRequest = Just id 
                             , message = "Loading data for movie : " ++ toString id
                             } 
-                        , Cmd.batch [ fetchMovieDetail id, Route.modifyRoute model.currentRoute ]
+                        , Cmd.batch [ fetchMovieDetail id, Route.modifyUrl model.currentPage ]
                         )
 
 fetchMovieDetail : Int -> Cmd Msg
@@ -119,8 +120,12 @@ fetchMovieDetail id =
 
                 Just movie ->
                     Task.succeed movie
+        delayedFetchTask =
+            Process.sleep 1000
+            |> Task.andThen (\_ -> fetchTask)
     in
-        Task.attempt processFetch fetchTask
+      Task.attempt processFetch delayedFetchTask
+        
 
 processFetch : Result String Movie -> Msg
 processFetch result =
@@ -133,11 +138,11 @@ processFetch result =
 
 view : Model -> Html Msg
 view model =
-  case model.currentRoute of
-    Movies ->
+  case model.currentPage of
+    MoviesPage ->
       moviesView model
   
-    MovieDetail movieId movie ->
+    MovieDetailPage movieId movie ->
       moviesDetailView model movieId movie
 
 
@@ -152,7 +157,7 @@ moviesView model =
 viewMovie (id, movie) =
   li [ class "movie-list-item" ]  
     [ text movie
-    , a [ href <| Route.toUrl <| MovieDetailUrl id ]
+    , a [ href <| Route.toUrl <| MovieDetail id ]
       [ text "show details" ]
     ]
 
@@ -160,7 +165,7 @@ moviesDetailView : Model -> Int -> Movie -> Html msg
 moviesDetailView model movieId movie =
   div [ class "page" ]
     [ div [ class "header" ]
-      [ a [ href <| Route.toUrl MoviesUrl ] [ text "Back to movies" ]
+      [ a [ href <| Route.toUrl Movies ] [ text "Back to movies" ]
       , text "Movie details"
       ]
     , p [] [ text model.message ] 
