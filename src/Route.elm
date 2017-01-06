@@ -7,20 +7,26 @@ import UrlParser as P exposing ((</>))
 This variant stores data too!
 -}
 type Page =
-    MoviesPage
+    HomePage
+    | MoviesPage (List MovieSummary)
     | MovieDetailPage Int Movie
+
+type alias Movie = { title : String, year : Int }
+type alias MovieSummary = (Int, String)
 
 {- typesafe variant of valid urls -}
 type Route =
-  Movies
-  | MovieDetail Int
+    Home
+    | Movies
+    | MovieDetail Int
 
 
 -- Helpers to turn Location into a Maybe Route
 routeParser : P.Parser (Route -> a) a
 routeParser =
     P.oneOf
-        [ P.map Movies (P.top)
+        [ P.map Home (P.top)
+        , P.map Movies (P.s "movies")
         , P.map MovieDetail (P.s "movies" </> P.int) 
         ]
 
@@ -36,8 +42,11 @@ toUrl route =
     let
         hashPage =
             case route of
-                Movies ->
+                Home ->
                     "/"
+
+                Movies ->
+                    "/movies"
 
                 MovieDetail id ->
                     "/movies/" ++ toString id
@@ -49,7 +58,10 @@ toUrl route =
 toRoute : Page -> Route
 toRoute page =
     case page of
-        MoviesPage ->
+        HomePage ->
+            Home
+
+        MoviesPage _ ->
             Movies
 
         MovieDetailPage id _ ->
@@ -73,5 +85,3 @@ modifyUrl =
 newUrl : Page -> Cmd msg
 newUrl =
     Navigation.newUrl << toUrl << toRoute
-
-type alias Movie = { title : String, year : Int }

@@ -10,3 +10,28 @@ img {
   margin: 20px 0;
   max-width: 200px;
 }
+
+#root {
+	width: 600px;
+	margin: auto;
+}
+
+.message {
+	background-color: #444;
+	color: #fff;
+	border-radius: 2px;
+	margin: 8px;
+}
+
+.mdl-layout__header.mdl-layout__header-row {
+    padding-left: 0px;
+}
+
+.mdl-layout__title {
+	padding-left: 32px;
+}
+
+.mdl-button .material-icons
+{ 
+	margin-bottom: 3px; 
+}

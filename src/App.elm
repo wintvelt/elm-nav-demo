@@ -1,6 +1,6 @@
 module App exposing (..)
 
-import Html exposing (Html, Attribute, text, div, p, input, ul, li, a)
+import Html exposing (Html, Attribute, text, div, p, span, ul, li, a, i, h3, h4)
 import Html.Attributes exposing (type_, placeholder, class, href)
 import Dict exposing (Dict)
 import Navigation exposing (Location)
@@ -36,7 +36,7 @@ init location =
             , (3, "Da Vinci Code")
             , (4, "Eagle Eye")
             ]
-    , currentPage = MoviesPage
+    , currentPage = HomePage
     , message = ""
     , serverRequest = Nothing
     }
@@ -97,8 +97,14 @@ urlUpdate newLocation model =
 
             else
                 case validRoute of
+                    Home ->
+                        ( { model | currentPage = HomePage}
+                        , Cmd.none
+                        )
+
+
                     Movies ->
-                        ( { model | currentPage = MoviesPage }
+                        ( { model | currentPage = MoviesPage (Dict.toList model.movies)}
                         , Cmd.none
                         )
 
@@ -139,39 +145,80 @@ processFetch result =
 view : Model -> Html Msg
 view model =
   case model.currentPage of
-    MoviesPage ->
-      moviesView model
+    HomePage ->
+        homeView model
+
+    MoviesPage movies ->
+        moviesView model movies
   
     MovieDetailPage movieId movie ->
-      moviesDetailView model movieId movie
+        moviesDetailView model movieId movie
+
+homeView : Model -> Html Msg
+homeView model =
+  div [ class "mdl-layout mdl-layout--fixed-header" ]
+    [ div 
+        [ class "mdl-layout__header mdl-layout__header-row" ]
+        [ span [ class "mdl-layout__title" ] [ text "Homepage" ] 
+        ]
+    , p [ class "message" ] [ text model.message ]
+    , a 
+        [ href <| Route.toUrl Movies 
+        , class "mdl-button"
+        ] 
+        [ text "Show movielist"
+        , i [ class "material-icons" ] [ text "chevron_right" ]
+        ]
+    ]
 
 
-moviesView model =
-  div [ class "page" ]
-    [ div [ class "header" ] [ text "Movies page" ]
-    , p [] [ text model.message ]
-    , ul [ class "movielist" ]
-      <| List.map viewMovie <| Dict.toList model.movies  
+
+moviesView model movies =
+  div [ class "mdl-layout mdl-layout--fixed-header" ]
+    [ div [ class "mdl-layout__header mdl-layout__header-row" ]
+      [ a 
+        [ href <| Route.toUrl Home 
+        , class "mdl-navigation__link"
+        ] 
+        [ i [ class "material-icons" ] [ text "chevron_left" ]
+        , text "HomePage" 
+        ]
+      , span [ class "mdl-layout__title" ] [ text "Movie List" ]
+      ]
+    , p [ class "message" ] [ text model.message ]
+    , ul [ class "mdl-list" ]
+      <| List.map viewMovie movies
     ]
 
 viewMovie (id, movie) =
-  li [ class "movie-list-item" ]  
-    [ text movie
-    , a [ href <| Route.toUrl <| MovieDetail id ]
-      [ text "show details" ]
+  li [ class "mdl-list__item" ]  
+    [ span [ class "mdl-list__item-primary-content" ] [ text movie ]
+    , a 
+        [ href <| Route.toUrl <| MovieDetail id 
+        , class "mdl-list__item-secondary-action mdl-button mdl-button--accent"
+        ]
+        [ text "details" 
+        , i [ class "material-icons"] [ text "chevron_right" ]
+        ]
     ]
 
 moviesDetailView : Model -> Int -> Movie -> Html msg
 moviesDetailView model movieId movie =
-  div [ class "page" ]
-    [ div [ class "header" ]
-      [ a [ href <| Route.toUrl Movies ] [ text "Back to movies" ]
-      , text "Movie details"
+  div [ class "mdl-layout mdl-layout--fixed-header" ]
+    [ div [ class "mdl-layout__header mdl-layout__header-row" ]
+      [ a 
+        [ href <| Route.toUrl Movies
+        , class "mdl-navigation__link"
+        ]
+        [ i [ class "material-icons" ] [ text "chevron_left" ]
+        , text "Movies" 
+        ]
+      , span [ class "mdl-layout__title" ] [ text "Movie details" ]
       ]
-    , p [] [ text model.message ] 
+    , p [ class "message" ] [ text model.message ] 
     , div [ class "movie-details" ]
-      [ p [] [ text movie.title ]
-      , p [] [ text <| "year : " ++ toString movie.year ]
+      [ h3 [] [ text movie.title ]
+      , h4 [] [ text <| "year : " ++ toString movie.year ]
       ]
     ]
 
