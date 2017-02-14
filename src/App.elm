@@ -1,7 +1,9 @@
 module App exposing (..)
 
-import Html exposing (Html, Attribute, text, div, p, span, ul, li, a, i, h3, h4)
-import Html.Attributes exposing (type_, placeholder, class, href)
+import Html exposing (Html, Attribute, text, div, p, span, ul, li, a, i, h3, h4, button)
+import Html.Attributes exposing (type_, placeholder, class, href, attribute)
+import Html.Events exposing (onClick, onWithOptions)
+import Json.Decode exposing (succeed)
 import Dict exposing (Dict)
 import Navigation exposing (Location)
 import Route as Route exposing (Route(..), Page(..))
@@ -47,6 +49,7 @@ type Msg
     = UrlChanged Location
     | LoadError String
     | GotMovieDetail Movie
+    | TryUrl String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -81,6 +84,9 @@ update msg model =
                         }
                     ,   Cmd.none
                     )
+
+        TryUrl hashLess ->
+            model ! [ Navigation.newUrl hashLess ]
 
 
 urlUpdate : Location -> Model -> ( Model, Cmd Msg )
@@ -169,8 +175,15 @@ homeView model =
         [ text "Show movielist"
         , i [ class "material-icons" ] [ text "chevron_right" ]
         ]
+    , button [ onClick <| TryUrl "/users" ] [ text "Try hashLess" ]
+    , a [ href "/users" ] [ text "Try hashLess link" ]
+    , div [ attribute "onclick" "history.pushState({},'check','/users');"] [ text "try hashless hack"]
+    , a [ href "/users", onClickPrevent <| TryUrl "/users/whatever" ] [ text "Try hashLess link with different msg" ]
     ]
 
+onClickPrevent : msg -> Attribute msg
+onClickPrevent msg =
+    onWithOptions "click" { preventDefault = True, stopPropagation = False} (succeed msg)
 
 
 moviesView model movies =

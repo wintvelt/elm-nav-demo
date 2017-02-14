@@ -2,11 +2,11 @@
 
 Demo of Elm navigation in combination with Evan's UrlParser.
 
-Using a new setup. 
+Using a new setup.
 
 ##Making Impossible Routes Impossible##
 
-In real life, you often have a URLs like `/movies/movie1234`.
+In apps, you often have a URLs like `/movies/movie1234`.
 For URLs, this is fine. It basically says "I want to see the details of movie 1234".
 Typically, the browser makes a request to a server, and the server comes back with either:
 
